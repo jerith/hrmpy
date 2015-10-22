@@ -69,10 +69,19 @@ def parse_input_data(text):
     for char in text:
         if char in " \t\r\n":
             if datum:
-                input_data.append(int(datum))
+                input_data.append(_parse_input_datum(datum))
                 datum = ""
         else:
             datum += char
     if datum:
-        input_data.append(int(datum))
+        input_data.append(_parse_input_datum(datum))
     return input_data
+
+
+characters = ''.join(chr(c) for c in range(ord('a'), ord('z') + 1))
+
+
+def _parse_input_datum(datum):
+    if len(datum) == 1 and datum in characters:
+        return ops.Character(datum)
+    return ops.Integer(int(datum))

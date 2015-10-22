@@ -1,5 +1,6 @@
 import pytest
 
+from hrmpy.operations import Integer, Character
 from hrmpy import parser
 
 
@@ -65,3 +66,43 @@ class TestParseProgram(object):
             "OUTBOX",
         ]))
         assert map(str, ops) == ['INBOX', 'OUTBOX']
+
+
+class TestParseInput(object):
+
+    def test_empty_input(self):
+        """
+        An empty string is empty input.
+        """
+        input_data = parser.parse_input_data("")
+        assert input_data == []
+
+    def test_some_numbers(self):
+        """
+        A space-separated string containing numbers is valid input.
+        """
+        input_data = parser.parse_input_data("1 2 3")
+        assert input_data == [Integer(1), Integer(2), Integer(3)]
+
+    def test_big_numbers(self):
+        """
+        A space-separated string containing long numbers is valid input.
+        """
+        input_data = parser.parse_input_data("123 -37")
+        assert input_data == [Integer(123), Integer(-37)]
+
+    def test_some_characters(self):
+        """
+        A space-separated string containing characters is valid input.
+        """
+        input_data = parser.parse_input_data("a b c")
+        assert input_data == [
+            Character('a'), Character('b'), Character('c')]
+
+    def test_mixed_input(self):
+        """
+        A space-separated string containing numbers and characters is valid.
+        """
+        input_data = parser.parse_input_data("1 2 a b 3")
+        assert input_data == [
+            Integer(1), Integer(2), Character('a'), Character('b'), Integer(3)]

@@ -57,7 +57,7 @@ class Program(object):
 class Accumulator(object):
     def __init__(self):
         self.empty = True
-        self.value = 0
+        self.value = None
 
     def set(self, value):
         self.empty = False
@@ -72,9 +72,6 @@ class Accumulator(object):
 
 
 def mainloop(program, input_data):
-    print program
-    print input_data
-
     memory = Memory()
     acc = Accumulator()
     pc = 0
@@ -86,24 +83,24 @@ def mainloop(program, input_data):
                 return
             acc.set(input_data.pop(0))
         elif op.name == 'OUTBOX':
-            print acc.get()
+            print acc.get().tostr()
             acc.clear()
         elif op.name == 'JUMP':
             pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPZ':
-            if acc.get() == 0:
+            if acc.get().zero():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPN':
-            if acc.get() < 0:
+            if acc.get().negative():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'COPYTO':
             memory.set(op.addr, acc.get())
         elif op.name == 'COPYFROM':
             acc.set(memory.get(op.addr))
         elif op.name == 'ADD':
-            acc.set(acc.get() + memory.get(op.addr))
+            acc.set(acc.get().add(memory.get(op.addr)))
         elif op.name == 'SUB':
-            acc.set(acc.get() - memory.get(op.addr))
+            acc.set(acc.get().sub(memory.get(op.addr)))
         else:
             assert False, "Unknown op: %s" % (op,)
         pc += 1

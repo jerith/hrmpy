@@ -93,6 +93,12 @@ class Value(object):
     A value.
     """
 
+    def zero(self):
+        return False
+
+    def negative(self):
+        return False
+
 
 class Integer(Value):
     """
@@ -101,6 +107,29 @@ class Integer(Value):
     def __init__(self, integer):
         self.integer = integer
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.integer == other.integer
+
+    def __ne__(self, other):
+        return not self == other
+
+    def add(self, other):
+        return Integer(self.integer + other.integer)
+
+    def sub(self, other):
+        return Integer(self.integer - other.integer)
+
+    def tostr(self):
+        return str(self.integer)
+
+    def zero(self):
+        return self.integer == 0
+
+    def negative(self):
+        return self.integer < 0
+
 
 class Character(Value):
     """
@@ -108,3 +137,14 @@ class Character(Value):
     """
     def __init__(self, character):
         self.character = character
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.character == other.character
+
+    def __ne__(self, other):
+        return not self == other
+
+    def tostr(self):
+        return self.character
