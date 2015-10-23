@@ -54,53 +54,41 @@ class Program(object):
         return len(self._operations)
 
 
-class Accumulator(object):
-    def __init__(self):
-        self.empty = True
-        self.value = None
-
-    def set(self, value):
-        self.empty = False
-        self.value = value
-
-    def get(self):
-        assert not self.empty, "Accumulator is empty."
-        return self.value
-
-    def clear(self):
-        self.empty = True
+def not_none(value, msg):
+    ops.check_legal(value is not None, "Nothing to " + msg)
+    return value
 
 
 def mainloop(program, input_data):
+    program = Program(program)
     memory = Memory()
-    acc = Accumulator()
+    acc = None
     pc = 0
     while 0 <= pc < len(program):
         op = program[pc]
         if op.name == 'INBOX':
             if not input_data:
-                print "-- DONE --"
                 return
-            acc.set(input_data.pop(0))
+            acc = input_data.pop(0)
         elif op.name == 'OUTBOX':
-            print acc.get().tostr()
-            acc.clear()
+            print not_none(acc, "OUTBOX").tostr()
+            acc = None
         elif op.name == 'JUMP':
             pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPZ':
-            if acc.get().zero():
+            if not_none(acc, "compare").zero():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPN':
-            if acc.get().negative():
+            if not_none(acc, "compare").negative():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'COPYTO':
-            memory.set(op.addr, acc.get())
+            memory.set(op.addr, not_none(acc, "COPYTO"))
         elif op.name == 'COPYFROM':
-            acc.set(memory.get(op.addr))
+            acc = memory.get(op.addr)
         elif op.name == 'ADD':
-            acc.set(acc.get().add(memory.get(op.addr)))
+            acc = not_none(acc, "ADD to").add(memory.get(op.addr))
         elif op.name == 'SUB':
-            acc.set(acc.get().sub(memory.get(op.addr)))
+            acc = not_none(acc, "SUB from").sub(memory.get(op.addr))
         else:
             assert False, "Unknown op: %s" % (op,)
         pc += 1
@@ -133,7 +121,7 @@ def entry_point(argv):
         memory_filename = argv[3]
     except IndexError:
         memory_filename = None
-    program = Program(parse_program(read(program_filename)))
+    program = parse_program(read(program_filename))
     input_data = parse_input_data(read(input_filename))
     assert memory_filename is None, "Not implemented yet."
     mainloop(program, input_data)

@@ -22,6 +22,15 @@ JUMP_OPERATIONS = [
 ]
 
 
+def check_legal(is_legal, msg):
+    if not is_legal:
+        raise IllegalOperation(msg)
+
+
+class IllegalOperation(Exception):
+    pass
+
+
 class Operation(object):
     """
     An operation the program can execute.
@@ -93,6 +102,21 @@ class Value(object):
     A value.
     """
 
+    def __eq__(self, other):
+        return NotImplemented
+
+    def __ne__(self, other):
+        return not self == other
+
+    def add(self, other):
+        raise IllegalOperation("Can't add these.")
+
+    def sub(self, other):
+        raise IllegalOperation("Can't sub these.")
+
+    def tostr(self):
+        assert False, "Not implemented"
+
     def zero(self):
         return False
 
@@ -112,13 +136,12 @@ class Integer(Value):
             return NotImplemented
         return self.integer == other.integer
 
-    def __ne__(self, other):
-        return not self == other
-
     def add(self, other):
+        check_legal(isinstance(other, Integer), "Can't add these.")
         return Integer(self.integer + other.integer)
 
     def sub(self, other):
+        check_legal(isinstance(other, Integer), "Can't sub these.")
         return Integer(self.integer - other.integer)
 
     def tostr(self):
@@ -136,15 +159,18 @@ class Character(Value):
     A character.
     """
     def __init__(self, character):
-        self.character = character
+        # RPython requires proof that this is a character and not a string.
+        assert len(character) == 1
+        self.character = character[0]
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.character == other.character
 
-    def __ne__(self, other):
-        return not self == other
-
     def tostr(self):
         return self.character
+
+    def sub(self, other):
+        check_legal(isinstance(other, Character), "Can't sub these.")
+        return Integer(ord(self.character) - ord(other.character))
