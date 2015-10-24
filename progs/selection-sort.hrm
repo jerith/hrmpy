@@ -1,0 +1,59 @@
+This is a basic implementation of a selection sort.
+
+-- HUMAN RESOURCE MACHINE PROGRAM --
+
+.memset 65535 0
+
+start:
+    COPYFROM 65535
+    COPYTO   65534
+    COPYTO   65533
+
+input:
+    INBOX
+    JUMPZ    endinput
+    COPYTO   [65534]
+    BUMPUP   65534
+    JUMP     input
+endinput:
+    BUMPDN   65533
+
+outerloop:
+    BUMPUP   65533
+    SUB      65534
+    JUMPZ    end
+    COPYFROM 65533
+    COPYTO   65531
+    COPYTO   65532
+
+innerloop:
+    BUMPUP   65532
+    SUB      65534
+    JUMPZ    swap
+    COPYFROM [65531]
+    SUB      [65532]
+    JUMPN    innerloop
+    COPYFROM 65532
+    COPYTO   65531
+    JUMP     innerloop
+
+swap:
+    COPYFROM [65531]
+    COPYTO   65530
+    COPYFROM [65533]
+    COPYTO   [65531]
+    COPYFROM 65530
+    COPYTO   [65533]
+    JUMP     outerloop
+
+end:
+    COPYFROM 65535
+    COPYTO   65533
+    BUMPDN   65533
+output:
+    BUMPUP   65533
+    SUB      65534
+    JUMPZ    start
+    COPYFROM [65533]
+    OUTBOX
+    JUMP     output

@@ -39,7 +39,8 @@ def _parse_instruction(instructions):
         return ops.NullaryOperation(instruction)
     if op in ops.MEMORY_OPERATIONS:
         if data.startswith('[') and data.endswith(']'):
-            return ops.IndirectMemoryOperation(op, int(data[1:-1]))
+            data = data[1:][:-1]  # Proves non-negative slice end to RPython
+            return ops.IndirectMemoryOperation(op, int(data))
         return ops.MemoryOperation(op, int(data))
     elif op in ops.JUMP_OPERATIONS:
         return ops.JumpOperation(op, data)
