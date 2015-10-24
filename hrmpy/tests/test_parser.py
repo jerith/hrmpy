@@ -67,6 +67,23 @@ class TestParseProgram(object):
         ]))
         assert map(str, ops) == ['INBOX', 'OUTBOX']
 
+    def test_memset(self):
+        """
+        A program can include some initial memory values.
+        """
+        ops = parser.parse_program("\n".join([
+            "-- HUMAN RESOURCE MACHINE PROGRAM --",
+            "COPYFROM 0",
+            "OUTBOX",
+            "COPYFROM 1",
+            "OUTBOX",
+            ".memset 0 1",
+            ".memset 1 a",
+        ]))
+        assert map(str, ops) == [
+            'COPYFROM 0', 'OUTBOX', 'COPYFROM 1', 'OUTBOX',
+            '.memset 0 1', '.memset 1 a']
+
 
 class TestParseInput(object):
 

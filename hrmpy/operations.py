@@ -99,6 +99,16 @@ class Definition(PseudoOperation):
         self.instructions = instructions
 
 
+class Memset(PseudoOperation):
+    def __init__(self, addr, value):
+        Operation.__init__(self, '.memset')
+        self.addr = addr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s %s" % (self.name, self.addr, self.value.tostr())
+
+
 class Value(object):
     """
     A value.

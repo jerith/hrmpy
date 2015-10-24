@@ -30,6 +30,9 @@ def _parse_instruction(instructions):
         return _parse_define(instruction, instructions)
     if instruction.startswith('COMMENT '):
         return ops.Comment(instruction)
+    if instruction.startswith('.memset '):
+        addr, value = _splitop(instruction[8:])
+        return ops.Memset(int(addr), _parse_input_datum(value))
     # Operation things.
     op, data = _splitop(instruction)
     if op in ops.NULLARY_OPERATIONS:
@@ -44,7 +47,7 @@ def _parse_instruction(instructions):
 def _splitop(instruction):
     op = ""
     for i, char in enumerate(instruction):
-        if char in " \t\r\n":
+        if char in " \t":
             return op, instruction[i:].strip()
         op += char
     return instruction, ""

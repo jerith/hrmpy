@@ -23,6 +23,7 @@ class Program(object):
         self._comment_values = {}
         self._label_values = {}
         self._operations = []
+        self._initial_memory = {}
         self._build_program(operations)
 
     def __str__(self):
@@ -43,9 +44,15 @@ class Program(object):
             elif isinstance(op, ops.Definition):
                 # Ignore for now.
                 pass
+            elif isinstance(op, ops.Memset):
+                self._initial_memory[op.addr] = op.value
             else:
                 assert not isinstance(op, ops.PseudoOperation)
                 self._operations.append(op)
+
+    def set_initial_memory(self, memory):
+        for addr in self._initial_memory:
+            memory.set(addr, self._initial_memory[addr])
 
     def __getitem__(self, index):
         return self._operations[index]
@@ -60,8 +67,9 @@ def not_none(value):
 
 
 def mainloop(program, input_data):
-    program = Program(program)
     memory = Memory()
+    program = Program(program)
+    program.set_initial_memory(memory)
     acc = None
     pc = 0
     while 0 <= pc < len(program):

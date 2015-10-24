@@ -79,6 +79,15 @@ class TestMainloop(object):
             input("1 2 a b"))
         assert cachedsys.output_data == "1 1 2 2 a a b b"
 
+    def test_memset(self, cachedsys):
+        """
+        Initial memory values can be set with .memset.
+        """
+        mainloop(program(
+            ".memset 5 b", "COPYFROM 0", "OUTBOX", "COPYFROM 5", "OUTBOX",
+            ".memset 0 1"), [])
+        assert cachedsys.output_data == "1 b"
+
     def test_COPYTO_no_value(self, cachedsys):
         """
         It is an error to COPYTO a null value.
