@@ -1,7 +1,6 @@
 import os
-import sys
 
-import hrmpy.operations as ops
+from hrmpy import operations as ops
 from hrmpy.parser import parse_program, parse_input_data
 
 
@@ -126,12 +125,3 @@ def entry_point(argv):
     assert memory_filename is None, "Not implemented yet."
     mainloop(program, input_data)
     return 0
-
-
-def target(driver, args):
-    driver.exe_name = 'hrmpy-%(backend)s'
-    return entry_point, None
-
-
-if __name__ == '__main__':
-    entry_point(sys.argv)
