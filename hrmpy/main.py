@@ -89,6 +89,12 @@ def mainloop(program, input_data):
             acc = not_none(acc).add(memory.get(op.addr))
         elif op.name == 'SUB':
             acc = not_none(acc).sub(memory.get(op.addr))
+        elif op.name == 'BUMPUP':
+            acc = memory.get(op.addr).add(ops.Integer(1))
+            memory.set(op.addr, acc)
+        elif op.name == 'BUMPDN':
+            acc = memory.get(op.addr).sub(ops.Integer(1))
+            memory.set(op.addr, acc)
         else:
             assert False, "Unknown op: %s" % (op,)
         pc += 1

@@ -13,6 +13,8 @@ MEMORY_OPERATIONS = [
     'COPYFROM',
     'ADD',
     'SUB',
+    'BUMPUP',
+    'BUMPDN',
 ]
 
 JUMP_OPERATIONS = [
