@@ -40,7 +40,7 @@ And then run the translated version::
 Tests?
 ------
 
-There are (not enought) tests. Run them like so::
+There are (not enough) tests. Run them like so::
 
   $ pip install -r requirements-dev.txt  # To install pytest and friends
   $ py.test
