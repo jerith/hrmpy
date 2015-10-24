@@ -9,6 +9,7 @@ class Memory(object):
         self._cells = {}
 
     def get(self, addr):
+        ops.check_legal(addr in self._cells, "No value in %s." % (addr,))
         return self._cells[addr]
 
     def set(self, addr, value):
@@ -53,8 +54,8 @@ class Program(object):
         return len(self._operations)
 
 
-def not_none(value, msg):
-    ops.check_legal(value is not None, "Nothing to " + msg)
+def not_none(value):
+    ops.check_legal(value is not None, "No value held.")
     return value
 
 
@@ -70,24 +71,24 @@ def mainloop(program, input_data):
                 return
             acc = input_data.pop(0)
         elif op.name == 'OUTBOX':
-            print not_none(acc, "OUTBOX").tostr()
+            print not_none(acc).tostr()
             acc = None
         elif op.name == 'JUMP':
             pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPZ':
-            if not_none(acc, "compare").zero():
+            if not_none(acc).zero():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'JUMPN':
-            if not_none(acc, "compare").negative():
+            if not_none(acc).negative():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'COPYTO':
-            memory.set(op.addr, not_none(acc, "COPYTO"))
+            memory.set(op.addr, not_none(acc))
         elif op.name == 'COPYFROM':
             acc = memory.get(op.addr)
         elif op.name == 'ADD':
-            acc = not_none(acc, "ADD to").add(memory.get(op.addr))
+            acc = not_none(acc).add(memory.get(op.addr))
         elif op.name == 'SUB':
-            acc = not_none(acc, "SUB from").sub(memory.get(op.addr))
+            acc = not_none(acc).sub(memory.get(op.addr))
         else:
             assert False, "Unknown op: %s" % (op,)
         pc += 1

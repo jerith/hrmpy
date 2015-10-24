@@ -11,118 +11,195 @@ def program(*lines):
 
 
 class TestMainloop(object):
-    def test_empty_program(self, capsys):
+    def test_empty_program(self, cachedsys):
         """
         An empty program produces no output.
         """
         mainloop([], [])
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
 
-    def test_empty_program_with_input(self, capsys):
+    def test_empty_program_with_input(self, cachedsys):
         """
         An empty program produces no output even if it gets input.
         """
         mainloop([], parse_input_data("1 a"))
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
 
-    def test_INBOX_OUTBOX_no_input(self, capsys):
+    def test_OUTBOX_no_value(self, cachedsys):
+        """
+        It is an error to OUTBOX a null value.
+        """
+        with pytest.raises(IllegalOperation):
+            mainloop(program("OUTBOX"), [])
+        assert cachedsys.output_data == ""
+
+    def test_INBOX_OUTBOX_no_input(self, cachedsys):
         """
         A simple copier produces no output if it gets no input.
         """
         mainloop(program("INBOX", "OUTBOX"), [])
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
 
-    def test_INBOX_OUTBOX(self, capsys):
+    def test_INBOX_OUTBOX_int(self, cachedsys):
         """
-        A simple copier produces output if it gets input.
+        INBOX will read an integer from the input data and OUTBOX will print
+        an integer.
         """
         mainloop(program("INBOX", "OUTBOX"), parse_input_data("1"))
-        out = capsys.readouterr()[0]
-        assert out == "1\n"
+        assert cachedsys.output_data == "1"
 
-    def test_copy_loop(self, capsys):
+    def test_INBOX_OUTBOX_char(self, cachedsys):
         """
-        A copy loop produces output if it gets input.
+        INBOX will read a character from the input data and OUTBOX will print
+        a character.
+        """
+        mainloop(program("INBOX", "OUTBOX"), parse_input_data("a"))
+        assert cachedsys.output_data == "a"
+
+    def test_INBOX_OUTBOX_JUMP(self, cachedsys):
+        """
+        A JUMP loop around INBOX OUTBOX will read everything from the input
+        data and print it.
         """
         mainloop(
             program("a:", "INBOX", "OUTBOX", "JUMP a"),
             parse_input_data("1 a -13"))
-        out = capsys.readouterr()[0]
-        assert out == "1\na\n-13\n"
+        assert cachedsys.output_data == "1 a -13"
 
-    def test_adder(self, capsys):
+    def test_COPYTO_COPYFROM(self, cachedsys):
         """
-        An adder will add two numbers.
+        COPYTO will store a value in memory and COPYFROM will retrieve it.
+        """
+        mainloop(
+            program(
+                "a:", "INBOX", "COPYTO 0", "OUTBOX", "COPYFROM 0", "OUTBOX",
+                "JUMP a"),
+            parse_input_data("1 2 a b"))
+        assert cachedsys.output_data == "1 1 2 2 a a b b"
+
+    def test_COPYTO_no_value(self, cachedsys):
+        """
+        It is an error to COPYTO a null value.
+        """
+        with pytest.raises(IllegalOperation):
+            mainloop(program("COPYTO 0"), [])
+        assert cachedsys.output_data == ""
+
+    def test_COPYFROM_no_value(self, cachedsys):
+        """
+        It is an error to COPYFROM an empty memory cell.
+        """
+        with pytest.raises(IllegalOperation):
+            mainloop(program("COPYFROM 0"), [])
+        assert cachedsys.output_data == ""
+
+    def test_COPYTO_COPYFROM_different_addresses(self, cachedsys):
+        """
+        COPYTO and COPYFROM with different addresses will use different memory
+        cells.
+        """
+        mainloop(
+            program(
+                "a:", "INBOX", "COPYTO 0", "INBOX", "COPYTO 1", "COPYFROM 0",
+                "OUTBOX", "COPYFROM 1", "OUTBOX", "JUMP a"),
+            parse_input_data("1 2 a b"))
+        assert cachedsys.output_data == "1 2 a b"
+
+    def test_JUMPZ(self, cachedsys):
+        """
+        JUMPZ will only jump if the accumulator holds a zero.
+        """
+        mainloop(
+            program("a:", "INBOX", "JUMPZ b", "OUTBOX", "JUMP a", "b:"),
+            parse_input_data("1 2 a b -1 -2 0 1 2"))
+        assert cachedsys.output_data == "1 2 a b -1 -2"
+
+    def test_JUMPZ_no_value(self, cachedsys):
+        """
+        It is an error to JUMPZ with no value.
+        """
+        with pytest.raises(IllegalOperation):
+            mainloop(program("a:", "JUMPZ a"), [])
+        assert cachedsys.output_data == ""
+
+    def test_JUMPN(self, cachedsys):
+        """
+        JUMPN will only jump if the accumulator holds a negative integer.
+        """
+        mainloop(
+            program("a:", "INBOX", "JUMPN b", "OUTBOX", "JUMP a", "b:"),
+            parse_input_data("1 2 a b 0 -1 0 1 2 -2"))
+        assert cachedsys.output_data == "1 2 a b 0"
+
+    def test_JUMPN_no_value(self, cachedsys):
+        """
+        It is an error to JUMPN with no value.
+        """
+        with pytest.raises(IllegalOperation):
+            mainloop(program("a:", "JUMPN a"), [])
+        assert cachedsys.output_data == ""
+
+    def test_ADD_ints(self, cachedsys):
+        """
+        ADD will add two numbers.
         """
         mainloop(
             program("INBOX", "COPYTO 0", "INBOX", "ADD 0", "OUTBOX"),
             parse_input_data("2 3"))
-        out = capsys.readouterr()[0]
-        assert out == "5\n"
+        assert cachedsys.output_data == "5"
 
-    def test_subber(self, capsys):
+    def test_SUB_ints(self, cachedsys):
         """
-        A subber will sub two numbers.
+        SUB will subtract two numbers.
         """
         mainloop(
             program("INBOX", "COPYTO 0", "INBOX", "SUB 0", "OUTBOX"),
             parse_input_data("3 2"))
-        out = capsys.readouterr()[0]
-        assert out == "-1\n"
+        assert cachedsys.output_data == "-1"
 
-    def test_adder_char(self, capsys):
+    def test_ADD_chars(self, cachedsys):
         """
-        An adder will not add two characters.
+        ADD will not add two characters.
         """
         with pytest.raises(IllegalOperation):
             mainloop(
                 program("INBOX", "COPYTO 0", "INBOX", "ADD 0", "OUTBOX"),
                 parse_input_data("a b"))
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
 
-    def test_subber_char(self, capsys):
+    def test_SUB_chars(self, cachedsys):
         """
-        A subber will sub two characters.
+        SUB will subtract two characters.
         """
         mainloop(
             program("INBOX", "COPYTO 0", "INBOX", "SUB 0", "OUTBOX"),
             parse_input_data("b a"))
-        out = capsys.readouterr()[0]
-        assert out == "-1\n"
+        assert cachedsys.output_data == "-1"
 
-    def test_adder_int_char(self, capsys):
+    def test_ADD_int_char(self, cachedsys):
         """
-        An adder will not add an integer and a character.
+        ADD will not add an integer and a character.
         """
         with pytest.raises(IllegalOperation):
             mainloop(
                 program("INBOX", "COPYTO 0", "INBOX", "ADD 0", "OUTBOX"),
+                parse_input_data("a 2"))
+        with pytest.raises(IllegalOperation):
+            mainloop(
+                program("INBOX", "COPYTO 0", "INBOX", "ADD 0", "OUTBOX"),
                 parse_input_data("1 b"))
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
 
-    def test_subber_int_char(self, capsys):
+    def test_SUB_int_char(self, cachedsys):
         """
-        A subber will not sub an integer and a character.
+        SUB will not subtract an integer and a character.
         """
         with pytest.raises(IllegalOperation):
             mainloop(
                 program("INBOX", "COPYTO 0", "INBOX", "SUB 0", "OUTBOX"),
                 parse_input_data("a 2"))
-        out = capsys.readouterr()[0]
-        assert out == ""
-
-    def test_subber_char_int(self, capsys):
-        """
-        A subber will not sub a character and an integer.
-        """
         with pytest.raises(IllegalOperation):
             mainloop(
                 program("INBOX", "COPYTO 0", "INBOX", "SUB 0", "OUTBOX"),
                 parse_input_data("1 b"))
-        out = capsys.readouterr()[0]
-        assert out == ""
+        assert cachedsys.output_data == ""
