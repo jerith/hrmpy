@@ -84,6 +84,24 @@ class TestParseProgram(object):
             'COPYFROM 0', 'OUTBOX', 'COPYFROM 1', 'OUTBOX',
             '.memset 0 1', '.memset 1 a']
 
+    def test_addresses(self):
+        """
+        A memory operation can use direct or indirect addressing.
+        """
+        ops = parser.parse_program("\n".join([
+            "-- HUMAN RESOURCE MACHINE PROGRAM --",
+            "COPYFROM [0]",
+            "OUTBOX",
+            "COPYFROM 1",
+            "OUTBOX",
+            ".memset 0 2",
+            ".memset 1 a",
+            ".memset 2 b",
+        ]))
+        assert map(str, ops) == [
+            'COPYFROM [0]', 'OUTBOX', 'COPYFROM 1', 'OUTBOX',
+            '.memset 0 2', '.memset 1 a', '.memset 2 b']
+
 
 class TestParseInput(object):
 

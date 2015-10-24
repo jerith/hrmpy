@@ -298,3 +298,27 @@ class TestMainloop(object):
         with pytest.raises(IllegalOperation):
             mainloop(program("BUMPDN 0"), [])
         assert cachedsys.output_data == ""
+
+    # def test_COPYTO_COPYFROM_ptr(self, cachedsys):
+    #     """
+    #     COPYTO will store a value through a pointer and COPYFROM will retrieve
+    #     it through a pointer.
+    #     """
+    #     mainloop(program(
+    #         ".memset 7 0", "a:",
+    #         "INBOX", "COPYTO [7]", "BUMPUP 7", "INBOX", "COPYTO [7]",
+    #         "COPYFROM [7]", "OUTBOX", "BUMPDN 7", "COPYFROM [7]", "OUTBOX",
+    #         "JUMP a"), input("1 2 a b"))
+    #     assert cachedsys.output_data == "2 1 b a"
+
+    def test_COPYTO_COPYFROM_ptr(self):
+        """
+        COPYTO will store a value through a pointer and COPYFROM will retrieve
+        it through a pointer.
+        """
+        mainloop(program(
+            ".memset 7 0", "a:",
+            "INBOX", "COPYTO [7]", "BUMPUP 7", "INBOX", "COPYTO [7]",
+            "COPYFROM [7]", "OUTBOX", "BUMPDN 7", "COPYFROM [7]", "OUTBOX",
+            "JUMP a"), input("1 2 a b"))
+        # assert cachedsys.output_data == "2 1 b a"

@@ -38,6 +38,8 @@ def _parse_instruction(instructions):
     if op in ops.NULLARY_OPERATIONS:
         return ops.NullaryOperation(instruction)
     if op in ops.MEMORY_OPERATIONS:
+        if data.startswith('[') and data.endswith(']'):
+            return ops.IndirectMemoryOperation(op, int(data[1:-1]))
         return ops.MemoryOperation(op, int(data))
     elif op in ops.JUMP_OPERATIONS:
         return ops.JumpOperation(op, data)

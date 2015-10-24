@@ -8,12 +8,27 @@ class Memory(object):
     def __init__(self):
         self._cells = {}
 
-    def get(self, addr):
+    def get_addr(self, addr):
         ops.check_legal(addr in self._cells, "No value in %s." % (addr,))
         return self._cells[addr]
 
-    def set(self, addr, value):
+    def set_addr(self, addr, value):
         self._cells[addr] = value
+
+    def _op_addr(self, op):
+        addr = op.addr
+        if op.indirect:
+            ptr = self.get_addr(addr)
+            ops.check_legal(
+                isinstance(ptr, ops.Integer), "No integer in %s." % (addr,))
+            addr = ptr.integer
+        return addr
+
+    def get_op(self, op):
+        return self.get_addr(self._op_addr(op))
+
+    def set_op(self, op, value):
+        self.set_addr(self._op_addr(op), value)
 
 
 class Program(object):
@@ -52,7 +67,7 @@ class Program(object):
 
     def set_initial_memory(self, memory):
         for addr in self._initial_memory:
-            memory.set(addr, self._initial_memory[addr])
+            memory.set_addr(addr, self._initial_memory[addr])
 
     def __getitem__(self, index):
         return self._operations[index]
@@ -90,19 +105,19 @@ def mainloop(program, input_data):
             if not_none(acc).negative():
                 pc = program._jump_labels[op.label] - 1
         elif op.name == 'COPYTO':
-            memory.set(op.addr, not_none(acc))
+            memory.set_op(op, not_none(acc))
         elif op.name == 'COPYFROM':
-            acc = memory.get(op.addr)
+            acc = memory.get_op(op)
         elif op.name == 'ADD':
-            acc = not_none(acc).add(memory.get(op.addr))
+            acc = not_none(acc).add(memory.get_op(op))
         elif op.name == 'SUB':
-            acc = not_none(acc).sub(memory.get(op.addr))
+            acc = not_none(acc).sub(memory.get_op(op))
         elif op.name == 'BUMPUP':
-            acc = memory.get(op.addr).add(ops.Integer(1))
-            memory.set(op.addr, acc)
+            acc = memory.get_op(op).add(ops.Integer(1))
+            memory.set_op(op, acc)
         elif op.name == 'BUMPDN':
-            acc = memory.get(op.addr).sub(ops.Integer(1))
-            memory.set(op.addr, acc)
+            acc = memory.get_op(op).sub(ops.Integer(1))
+            memory.set_op(op, acc)
         else:
             assert False, "Unknown op: %s" % (op,)
         pc += 1

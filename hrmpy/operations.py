@@ -55,12 +55,24 @@ class MemoryOperation(Operation):
     """
     An operation that operates on a memory address.
     """
+    indirect = False
+
     def __init__(self, name, addr):
         Operation.__init__(self, name)
         self.addr = addr
 
     def __str__(self):
         return "% -8s %s" % (self.name, self.addr)
+
+
+class IndirectMemoryOperation(MemoryOperation):
+    """
+    An operation that operates on a memory address through a pointer.
+    """
+    indirect = True
+
+    def __str__(self):
+        return "% -8s [%s]" % (self.name, self.addr)
 
 
 class JumpOperation(Operation):
@@ -125,6 +137,12 @@ class Value(object):
 
     def sub(self, other):
         raise IllegalOperation("Can't sub these.")
+
+    def __str__(self):
+        return self.tostr()
+
+    def __repr__(self):
+        return self.tostr()
 
     def tostr(self):
         assert False, "Not implemented"
