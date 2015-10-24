@@ -1,8 +1,8 @@
 hrmpy
 =====
 
-This is an (incomplete, currently) implementation of the assembler from
-`Tomorrow Corporation`_'s excellent game `Human Resource Machine`_.
+This is an implementation of the assembler from `Tomorrow Corporation`_'s
+excellent game `Human Resource Machine`_.
 
 .. _Tomorrow Corporation: http://tomorrowcorporation.com/
 .. _Human Resource Machine: http://tomorrowcorporation.com/humanresourcemachine
@@ -27,6 +27,10 @@ You can run a program with the untranslated interpreter::
 You can translate::
 
   $ /path/to/rpython/bin/rpython targethrmpy.py
+
+Or with the JIT enabled::
+
+  $ /path/to/rpython/bin/rpython --opt=jit targethrmpy.py
 
 And then run the translated version::
 

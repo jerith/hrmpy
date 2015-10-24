@@ -1,6 +1,22 @@
 import os
 
-from hrmpy import operations as ops
+try:
+    from rpython.rlib.jit import JitDriver
+except ImportError:
+    class JitDriver(object):
+        """
+        Fake JitDriver to avoid a hard dependency on RPython.
+        """
+        def __init__(self, **kw):
+            pass
+
+        def jit_merge_point(self, **kw):
+            pass
+
+        def can_enter_jit(self, **kw):
+            pass
+
+import hrmpy.operations as ops
 from hrmpy.parser import parse_program, parse_input_data
 
 
@@ -81,6 +97,10 @@ def not_none(value):
     return value
 
 
+jitdriver = JitDriver(
+    greens=['pc', 'program'], reds=['memory', 'acc', 'input_data'])
+
+
 def mainloop(program, input_data):
     memory = Memory()
     program = Program(program)
@@ -88,6 +108,9 @@ def mainloop(program, input_data):
     acc = None
     pc = 0
     while 0 <= pc < len(program):
+        jitdriver.jit_merge_point(
+            program=program, pc=pc, memory=memory, acc=acc,
+            input_data=input_data)
         op = program[pc]
         if op.name == 'INBOX':
             if not input_data:
